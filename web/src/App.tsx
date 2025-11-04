@@ -1,35 +1,62 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+declare global {
+  interface Window {
+    Telegram: any;
+  }
 }
 
-export default App
+function App() {
+  const [themeParams, setThemeParams] = useState<any>({});
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const tg = window.Telegram.WebApp;
+    tg.ready(); // let Telegram know the app is ready
+
+    // Set initial theme parameters
+    setThemeParams(tg.themeParams);
+    setIsDark(tg.colorScheme === "dark");
+
+    // Listen for theme change events
+    tg.onEvent("themeChanged", () => {
+      setThemeParams(tg.themeParams);
+      setIsDark(tg.colorScheme === "dark");
+    });
+
+    return () => tg.offEvent("themeChanged");
+  }, []);
+
+  return (
+    <div
+      style={{
+        backgroundColor: isDark ? themeParams.bg_color : "#fff",
+        color: isDark ? themeParams.text_color : "#000",
+        minHeight: "100vh",
+        padding: "2rem",
+        textAlign: "center",
+        transition: "all 0.3s ease",
+      }}
+    >
+      <h1>Telegram Theme Demo 🧠</h1>
+      <p>
+        This app automatically matches your Telegram’s{" "}
+        {isDark ? "dark" : "light"} mode.
+      </p>
+      <button
+        style={{
+          backgroundColor: themeParams.button_color || "#0088cc",
+          color: themeParams.button_text_color || "#fff",
+          border: "none",
+          padding: "10px 20px",
+          borderRadius: "8px",
+          cursor: "pointer",
+        }}
+      >
+        Telegram Style Button
+      </button>
+    </div>
+  );
+}
+
+export default App;
