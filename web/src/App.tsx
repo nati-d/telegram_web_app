@@ -7,53 +7,63 @@ declare global {
 }
 
 function App() {
-  const [themeParams, setThemeParams] = useState<any>({});
-  const [isDark, setIsDark] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const tg = window.Telegram.WebApp;
-    tg.ready(); // let Telegram know the app is ready
+    tg.ready();
 
-    // Set initial theme parameters
-    setThemeParams(tg.themeParams);
-    setIsDark(tg.colorScheme === "dark");
-
-    // Listen for theme change events
-    tg.onEvent("themeChanged", () => {
-      setThemeParams(tg.themeParams);
-      setIsDark(tg.colorScheme === "dark");
-    });
-
-    return () => tg.offEvent("themeChanged");
+    // Get Telegram user info
+    const userData = tg.initDataUnsafe?.user;
+    setUser(userData);
   }, []);
 
+  const sendData = async () => {
+    if (!user) return;
+
+    const payload = {
+      user_id: user.id,
+      username: user.username,
+      first_name: user.first_name,
+      message,
+    };
+
+    await fetch("http://localhost:8080/api/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    window.Telegram.WebApp.close(); // optional: closes the WebApp
+  };
+
   return (
-    <div
-      style={{
-        backgroundColor: isDark ? themeParams.bg_color : "#fff",
-        color: isDark ? themeParams.text_color : "#000",
-        minHeight: "100vh",
-        padding: "2rem",
-        textAlign: "center",
-        transition: "all 0.3s ease",
-      }}
-    >
-      <h1>Telegram Theme Demo 🧠</h1>
-      <p>
-        This app automatically matches your Telegram’s{" "}
-        {isDark ? "dark" : "light"} mode.
-      </p>
+    <div style={{ textAlign: "center", padding: "2rem" }}>
+      <h2>Hello {user?.first_name || "there"} 👋</h2>
+      <p>Send a message to your bot via Go backend!</p>
+
+      <input
+        placeholder="Type a message"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        style={{ padding: "8px", marginBottom: "10px", borderRadius: "6px" }}
+      />
+
+      <br />
+
       <button
+        onClick={sendData}
         style={{
-          backgroundColor: themeParams.button_color || "#0088cc",
-          color: themeParams.button_text_color || "#fff",
-          border: "none",
           padding: "10px 20px",
           borderRadius: "8px",
+          border: "none",
+          backgroundColor: "#2AABEE",
+          color: "white",
           cursor: "pointer",
         }}
       >
-        Telegram Style Button
+        Send to Bot
       </button>
     </div>
   );
