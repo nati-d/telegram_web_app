@@ -29,11 +29,11 @@ function App() {
       message,
     };
 
-    await fetch("https://a6cebcb0384a.ngrok-free.app/api/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    await fetch(`${import.meta.env.VITE_API_URL}/api/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
     window.Telegram.WebApp.close(); // optional: closes the WebApp
   };
